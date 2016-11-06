@@ -160,18 +160,20 @@ if __name__ == "__main__":
     time_used = []
     p_list = readQuestionFile('./tcga2016-question.txt')
 
+
     # dfs_RL(p_list[92])
 
     for i in xrange(0, len(p_list)):
         cur = datetime.datetime.utcnow()
         print "#", i
         dfs_RL(p_list[i])
-        print datetime.datetime.utcnow() - cur
         time_used.append(datetime.datetime.utcnow() - cur)
+        for i, t in enumerate(time_used):
+            print i, t
         print "--\n\n"
 
-    for i, t in enumerate(time_used):
-        print i, t
+
+
     # for idx, p in enumerate(p_list):
     #     s = dfs_RL(p)
     #     if s is not None:
