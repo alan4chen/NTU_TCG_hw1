@@ -95,7 +95,7 @@ def bfs_search(state):
                 new_state.sol_matrix[cell[0]][cell[1]] = 1
                 if fit_regular(new_state) == True:
                     notfilled_num = len((np.where(new_state.isfilled_matrix==False))[0])
-                    print notfilled_num
+                    print notfilled_num, " size: ", stateQueue.qsize()
                     stateQueue.put((notfilled_num, new_state))
     return None
 

@@ -9,6 +9,7 @@ pq = PriorityQueue()
 for element in items:
         pq.put((element, a+str(element)))
 print pq.get()
+print pq.qsize()
 print pq.get()
 print pq.get()
 print pq.empty()
