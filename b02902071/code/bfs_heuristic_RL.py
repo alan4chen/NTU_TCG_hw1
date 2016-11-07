@@ -8,6 +8,8 @@ from tools.checker import checkSolution
 import datetime
 from Queue import PriorityQueue
 from time import sleep
+from collections import defaultdict
+
 
 def run_regular(state):
     ret = rule_1_1(state)
@@ -75,11 +77,16 @@ def fit_regular(state):
     return True
 
 def bfs_search(state):
+    state_map = defaultdict()
+    counter = 0
     stateQueue = PriorityQueue()
     if fit_regular(state) == False: return None
-    stateQueue.put((len((np.where(state.isfilled_matrix==False))[0]), state))
+    state_map[counter] = state
+    stateQueue.put((len((np.where(state.isfilled_matrix==False))[0]), counter))
+    counter += 1
     while not stateQueue.empty():
-        notfilled_num, state = stateQueue.get()
+        notfilled_num, state_counter = stateQueue.get()
+        state = state_map[state_counter]
         if notfilled_num == 0:
             state.sol_matrix = np.where(state.sol_matrix > 0, True, False)
             if checkSolution(state):
@@ -87,6 +94,7 @@ def bfs_search(state):
                 return state
             else:
                 print "error"
+                del state
                 continue
         else:
             unknown_cells = np.where(state.isfilled_matrix==False)
@@ -96,7 +104,12 @@ def bfs_search(state):
                 if fit_regular(new_state) == True:
                     notfilled_num = len((np.where(new_state.isfilled_matrix==False))[0])
                     print notfilled_num, " size: ", stateQueue.qsize()
-                    stateQueue.put((notfilled_num, new_state))
+                    state_map[counter] = new_state
+                    stateQueue.put((notfilled_num, counter))
+                    counter += 1
+                else:
+                    del new_state
+            del state
     return None
 
 def dfs_RL(problem):
