@@ -9,5 +9,8 @@ arr2[2][1] = True
 
 print "--"
 
-print zip(np.where(arr == False)[0], np.where(arr == False)[1])
+print arr
+print zip(np.unique(arr, return_counts=True))
+# print arr.count(False)
+# print zip(np.where(arr == False)[0], np.where(arr == False)[1])
 # print len(np.where(arr == True)[0])

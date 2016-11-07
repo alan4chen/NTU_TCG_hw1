@@ -17,3 +17,8 @@ def compositions(n,k):
         for i in range(0,n+1):
             for comp in compositions(n-i,k-1):
                 yield [i] + comp
+
+
+if __name__ == "__main__":
+    for i in compositions(8,3):
+        print i

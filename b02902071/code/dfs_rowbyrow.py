@@ -121,18 +121,25 @@ if __name__ == "__main__":
 
 
     p_list = readQuestionFile('./tcga2016-question.txt')
-    cur = datetime.datetime.utcnow()
+    time_used = []
     for idx, p in enumerate(p_list):
+        cur = datetime.datetime.utcnow()
         s = dfs_rowbyrow(p)
+        flag = True
         if s is not None:
             print s.sol_matrix
         else:
-            print "Warning! NO SOLUTION!!"
-            print "idx: ", idx
-            exit()
-        print "--"
+            flag = False
+
+        time_used.append((datetime.datetime.utcnow() - cur, flag))
+        for i, t in enumerate(time_used):
+            print i, t[0], t[1]
+        print "--\n\n"
+
+
     print "total time: ", datetime.datetime.utcnow()-cur
     print "average time: ", (datetime.datetime.utcnow()-cur)/ len(p_list)
+
 
 
     """

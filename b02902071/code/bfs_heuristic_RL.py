@@ -6,6 +6,7 @@ from tools.structure import *
 from tools.RL import *
 from tools.checker import checkSolution
 import datetime
+from Queue import PriorityQueue
 from time import sleep
 
 def run_regular(state):
@@ -33,7 +34,6 @@ def run_regular(state):
     if not ret: return [False, "3_2"]
     ret = rule_3_3(state)
     if not ret: return [False, "3_3"]
-
     return (True, "")
 
 def regular(state):
@@ -57,8 +57,8 @@ def regular(state):
 
     return (True, "")
 
-def dfs_search(state, d):
 
+def fit_regular(state):
     while True:
         old_sol_matrix = copy.deepcopy(state.sol_matrix)
         old_row_run_matrix = copy.deepcopy(state.row_run_matrix)
@@ -66,42 +66,37 @@ def dfs_search(state, d):
         try:
             ret = regular(state)
             if ret[0] == False:
-                # print ret[1]
-                # print state.sol_matrix
-                return None
+                return False
         except:
-            return None
+            return False
         if (old_sol_matrix == state.sol_matrix).all() and (old_row_run_matrix == state.row_run_matrix).all() and \
                 (old_col_run_matrix == state.col_run_matrix).all():
             break
-    if len(np.where(state.isfilled_matrix == False)[0]) == 0:
-        state.sol_matrix = np.where(state.sol_matrix > 0, True, False)
-        if checkSolution(state):
-            return state
+    return True
+
+def bfs_search(state):
+    stateQueue = PriorityQueue()
+    if fit_regular(state) == False: return None
+    stateQueue.put((len((np.where(state.isfilled_matrix==False))[0]), state))
+    while not stateQueue.empty():
+        notfilled_num, state = stateQueue.get()
+        if notfilled_num == 0:
+            state.sol_matrix = np.where(state.sol_matrix > 0, True, False)
+            if checkSolution(state):
+                del stateQueue
+                return state
+            else:
+                print "error"
+                continue
         else:
-            return None
-    else:
-        unknown_cells = np.where(state.sol_matrix == 0)
-        if d == 0:
-            print state.sol_matrix
-
-        for cell in zip(unknown_cells[0], unknown_cells[1]):
-            next_state = copy.deepcopy(state)
-            next_state.sol_matrix[cell[0]][cell[1]] = 1
-            # next_state.sol_matrix[cell[0]][1] = -1
-            # next_state.sol_matrix[cell[0]][2] = -1
-            # print "d:", d
-            # print next_state.sol_matrix
-            ret_state = dfs_search(next_state, d+1)
-            if ret_state != None:
-                return ret_state
-
-            next_state = copy.deepcopy(state)
-            next_state.sol_matrix[cell[0]][cell[1]] = -1
-            ret_state = dfs_search(next_state, d + 1)
-            if ret_state != None:
-                return ret_state
-
+            unknown_cells = np.where(state.isfilled_matrix==False)
+            for cell in zip(unknown_cells[0], unknown_cells[1]):
+                new_state = copy.deepcopy(state)
+                new_state.sol_matrix[cell[0]][cell[1]] = 1
+                if fit_regular(new_state) == True:
+                    notfilled_num = len((np.where(new_state.isfilled_matrix==False))[0])
+                    print notfilled_num
+                    stateQueue.put((notfilled_num, new_state))
     return None
 
 def dfs_RL(problem):
@@ -145,7 +140,7 @@ def dfs_RL(problem):
     #     assert rule_3_3(state)
     #     tranposeSolutionState(state)
 
-    ret = dfs_search(state, 0)
+    ret = bfs_search(state)
     if ret != None:
         # ret.sol_matrix = np.where(ret.sol_matrix > 0, True, False)
         # if not checkSolution(ret):
