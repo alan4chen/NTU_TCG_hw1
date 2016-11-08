@@ -1,16 +1,9 @@
 import numpy as np
+from collections import Counter
 
-arr = np.zeros((3,4), dtype = 'bool')
-arr[2][1] = True
-
-arr2 = np.zeros((3,4), dtype = 'bool')
-arr2[2][1] = True
-# print (arr == arr2).all()
-
-print "--"
-
+arr = np.zeros((3,4), dtype = 'int')
 print arr
-print zip(np.unique(arr, return_counts=True))
-# print arr.count(False)
-# print zip(np.where(arr == False)[0], np.where(arr == False)[1])
-# print len(np.where(arr == True)[0])
+arr[1] = [1,2,3,4]
+arr[2] = 99
+print 99 in arr[1]
+print Counter(np.where(arr==2)[0]).most_common()[0]

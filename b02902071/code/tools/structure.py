@@ -61,6 +61,8 @@ def fliplr(state):
     state.isfilled_matrix = np.fliplr(state.isfilled_matrix)
     for i in xrange(0, state.n):
         state.row_hint[i] = state.row_hint[i][::-1]
+    # print state.row_run_matrix
+    # print "--"
     for i in xrange(0, state.n):
         state.row_run[i] = state.row_run[i][::-1]
         for j in xrange(0, len(state.row_run[i])):
@@ -69,6 +71,11 @@ def fliplr(state):
             n_list.append(state.n - 1 - state.row_run[i][j][0])
             state.row_run[i][j] = n_list
         updateRunMatrix(state, i)
+    # print state.row_run_matrix
+    # import time
+    # time.sleep(2)
+    # raise()
+    return
 
 def initializeSolutionState(problem):
     def initializeRun(state):

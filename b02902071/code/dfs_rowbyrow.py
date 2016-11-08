@@ -133,7 +133,7 @@ if __name__ == "__main__":
 
         time_used.append((datetime.datetime.utcnow() - cur, flag))
         for i, t in enumerate(time_used):
-            print i, t[0], t[1]
+            print i, t
         print "--\n\n"
 
 

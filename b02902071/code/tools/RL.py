@@ -66,7 +66,7 @@ def rule_1_3(state):
                     if state.row_hint[row_num][run_id] != 1:
                         flag = False
                 if flag == True:
-                    if state.sol_matrix[row_num][run[0] - 1] == 1: raise()
+                    if state.sol_matrix[row_num][run[0] - 1] == 1: return False
                     state.sol_matrix[row_num][run[0]-1] = -1
                     state.isfilled_matrix[row_num][run[0]-1] = True
 
@@ -83,7 +83,7 @@ def rule_1_3(state):
                     # print state.sol_matrix
                     # print row_num, run[1], run[1]+1
                     # print row_num, idx, run
-                    if state.sol_matrix[row_num][run[1] + 1] == 1: raise()
+                    if state.sol_matrix[row_num][run[1] + 1] == 1: return False
                     state.sol_matrix[row_num][run[1]+1] = -1
                     state.isfilled_matrix[row_num][run[1]+1] = True
     return True
@@ -132,6 +132,12 @@ def rule_1_5(state):
             # if cell[0] == 7 and cell[1] == 7:
             #     print state.sol_matrix
             #     print "cell77: ", state.row_run[7]
+            # if len(state.row_run_matrix[cell[0]][cell[1]]) == 0:
+            #     print state.transpose, state.flip
+            #     print "cell:", cell
+            #     print state.sol_matrix
+            #     print "run:", state.row_run[cell[0]]
+            #     print "here"
             minL = min(map(lambda x: state.row_hint[cell[0]][x], run_ids))
             m = None
             m_find = cell[1] - 1
@@ -319,8 +325,15 @@ def rule_3_1(state):
             black_cells = findBlackCells(state.sol_matrix, row_num, prev_end+1, next_start-1)
             black_segments = findBlackSegmentInRange(state.sol_matrix, row_num, prev_end+1, next_start-1)
             if len(black_cells) > 1 and len(black_segments) != 1:
+                # if state.transpose and not state.flip and row_num ==7 and run_id == 1:
+                #     print "in1:", state.row_run[7][1]
+                #     print state.sol_matrix
+                #     print black_cells, black_segments
+                #     m = black_segments[0][0]
+                #     n = black_segments[-1][1] + 1
+                #     print "m/n:", m, n
                 m = black_segments[0][0]
-                n = black_segments[-1][1]+1
+                n = black_segments[-1][1]
                 for x in range(m, n):
                     if state.sol_matrix[row_num][x] == -1: return False
                     state.sol_matrix[row_num][x] = 1
@@ -328,6 +341,8 @@ def rule_3_1(state):
                 u = state.row_hint[row_num][run_id] - (n - m + 1)
                 state.row_run[row_num][run_id][0] = m - u
                 state.row_run[row_num][run_id][1] = n + u
+                # if state.transpose and not state.flip and row_num ==7 and run_id == 1:
+                #     print "\nin2:", state.row_run[7][1]
         updateRunMatrix(state, row_num)
     return True
 
@@ -376,7 +391,15 @@ def rule_3_3(state):
                     state.sol_matrix[row_num][run[0]] = 1
                     state.isfilled_matrix[row_num][run[0]] = True
                 if run[0] != 0:
-                    if state.sol_matrix[row_num][run[0] - 1] == 1: return False
+                    if state.sol_matrix[row_num][run[0] - 1] == 1:
+                        # print state.transpose
+                        # print state.sol_matrix
+                        # print "run:", run
+                        # print "row_num:", row_num
+                        # print "run_id:", run_id
+                        # print state.row_hint[row_num]
+                        # print "run_len:", run_len
+                        return False
                     state.sol_matrix[row_num][run[0]-1] = -1
                     state.isfilled_matrix[row_num][run[0]] = True
                 if run[0]+run_len-1 != state.n-1:

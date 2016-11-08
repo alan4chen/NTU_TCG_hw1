@@ -1,15 +1,39 @@
 import json
 import numpy as np
 from copy import copy
+import cPickle
+import hashlib
 from tools.readQuesiontFile import readQuestionFile
 from tools.structure import *
 from tools.RL import *
 from tools.checker import checkSolution
 import datetime
+from tools.compositions import compositions
 from Queue import PriorityQueue
+from collections import Counter
 from time import sleep
 from collections import defaultdict
 
+def get_row_positions(row_hint, n):
+    if len(row_hint) == 0:
+        return [[-1] * n]
+    if sum(row_hint) + len(row_hint) - 1 > n:
+        return None
+    positions = []
+    zero_n = n - sum(row_hint) - len(row_hint) + 1
+    for zero_add in compositions(zero_n, len(row_hint)+1):
+        ret = []
+        iter_zero_add = iter(zero_add)
+        iter_hint = iter(row_hint)
+        ret += [-1] * next(iter_zero_add)
+        ret += [1] * next(iter_hint)
+        for i in xrange(0, len(row_hint)-1):
+            ret += [-1]
+            ret += [-1] * next(iter_zero_add)
+            ret += [1] * next(iter_hint)
+        ret += [-1] * next(iter_zero_add)
+        positions.append(ret)
+    return positions
 
 def run_regular(state):
     ret = rule_1_1(state)
@@ -35,7 +59,8 @@ def run_regular(state):
     ret = rule_3_2(state)
     if not ret: return [False, "3_2"]
     ret = rule_3_3(state)
-    if not ret: return [False, "3_3"]
+    if not ret:
+        return [False, "3_3"]
     return (True, "")
 
 def regular(state):
@@ -43,16 +68,18 @@ def regular(state):
     if not ret[0]: return ret + ["AA"]
     fliplr(state)
     ret = run_regular(state)
-    if not ret[0]: return ret + ["AB"]
+    if not ret[0]:
+        return ret + ["AB"]
     fliplr(state)
 
     tranposeSolutionState(state)
-
     ret = run_regular(state)
-    if not ret[0]: return ret + ["BA"]
+    if not ret[0]:
+        return ret + ["BA"]
     fliplr(state)
     ret = run_regular(state)
-    if not ret[0]: return ret + ["BB"]
+    if not ret[0]:
+        return ret + ["BB"]
     fliplr(state)
 
     tranposeSolutionState(state)
@@ -61,55 +88,61 @@ def regular(state):
 
 
 def fit_regular(state):
+    m = hashlib.md5()
+    m.update(cPickle.dumps(state))
+    old_hash = m.digest()
     while True:
-        old_sol_matrix = copy.deepcopy(state.sol_matrix)
-        old_row_run_matrix = copy.deepcopy(state.row_run_matrix)
-        old_col_run_matrix = copy.deepcopy(state.col_run_matrix)
         try:
             ret = regular(state)
-            if ret[0] == False:
-                return False
         except:
             return False
-        if (old_sol_matrix == state.sol_matrix).all() and (old_row_run_matrix == state.row_run_matrix).all() and \
-                (old_col_run_matrix == state.col_run_matrix).all():
+        if ret[0] == False:
+            # print state.sol_matrix
+            return False
+        m.update(cPickle.dumps(state))
+        new_hash = m.digest
+        if old_hash == new_hash:
             break
+        else:
+            old_hash = new_hash
+            continue
     return True
 
-def bfs_search(state):
-    state_map = defaultdict()
-    counter = 0
+def bfs_search(state, dfs_route):
     stateQueue = PriorityQueue()
     if fit_regular(state) == False: return None
-    state_map[counter] = state
-    stateQueue.put((len((np.where(state.isfilled_matrix==False))[0]), counter))
-    counter += 1
+    new_state = copy.deepcopy(state)
+    new_state.sol_matrix = np.where(new_state.sol_matrix > 0, True, False)
+    if checkSolution(new_state):
+        return new_state
+    stateQueue.put((len((np.where(state.isfilled_matrix==False))[0]), state))
     while not stateQueue.empty():
-        notfilled_num, state_counter = stateQueue.get()
-        state = state_map[state_counter]
-        if notfilled_num == 0:
-            state.sol_matrix = np.where(state.sol_matrix > 0, True, False)
-            if checkSolution(state):
-                del stateQueue
-                return state
-            else:
-                print "error"
-                del state
-                continue
-        else:
-            unknown_cells = np.where(state.isfilled_matrix==False)
-            for cell in zip(unknown_cells[0], unknown_cells[1]):
-                new_state = copy.deepcopy(state)
-                new_state.sol_matrix[cell[0]][cell[1]] = 1
-                if fit_regular(new_state) == True:
-                    notfilled_num = len((np.where(new_state.isfilled_matrix==False))[0])
-                    print notfilled_num, " size: ", stateQueue.qsize()
-                    state_map[counter] = new_state
-                    stateQueue.put((notfilled_num, counter))
-                    counter += 1
-                else:
-                    del new_state
-            del state
+        notfilled_num, state = stateQueue.get()
+
+        row_branch = None
+        for row_positons in dfs_route:
+            if False in state.isfilled_matrix[row_positons[1]]:
+                state.isfilled_matrix[row_positons[1]] = True
+                row_branch = row_positons
+                break
+
+        for row in row_branch[2]:
+            new_state = copy.deepcopy(state)
+            new_state.sol_matrix[row_branch[1]] = row
+            if fit_regular(new_state) == True:
+                notfilled_num = len((np.where(new_state.isfilled_matrix==False))[0])
+                print notfilled_num, " size: ", stateQueue.qsize()
+                if notfilled_num == 0:
+                    new_state.sol_matrix = np.where(new_state.sol_matrix > 0, True, False)
+                    if checkSolution(new_state):
+                        del stateQueue
+                        return new_state
+                    else:
+                        # print new_state.sol_matrix
+                        print "error"
+                        del new_state
+                        continue
+                stateQueue.put((notfilled_num, new_state))
     return None
 
 def dfs_RL(problem):
@@ -120,46 +153,19 @@ def dfs_RL(problem):
     '''
 
     state = initializeSolutionState(problem)
-    # print state.row_run
 
-    # for i in range(0, 50):
-    #     # print "--"
-    #     assert rule_1_1(state)
-    #     assert rule_1_2(state)
-    #     assert rule_1_3(state)
-    #     assert rule_1_4(state)
-    #     assert rule_1_5(state)
-    #     assert rule_2_1(state)
-    #     assert rule_2_2(state)
-    #     assert rule_2_3(state)
-    #     assert rule_2_4(state)
-    #     assert rule_3_1(state)
-    #     assert rule_3_2(state)
-    #     # print state.row_run_matrix[7][7]
-    #     assert rule_3_3(state)
-    #     # print state.row_run_matrix[7][7]
-    #     tranposeSolutionState(state)
-    #     assert rule_1_1(state)
-    #     assert rule_1_2(state)
-    #     assert rule_1_3(state)
-    #     assert rule_1_4(state)
-    #     assert rule_1_5(state)
-    #     assert rule_2_1(state)
-    #     assert rule_2_2(state)
-    #     assert rule_2_3(state)
-    #     assert rule_2_4(state)
-    #     assert rule_3_1(state)
-    #     assert rule_3_2(state)
-    #     assert rule_3_3(state)
-    #     tranposeSolutionState(state)
+    dfs_route = []
+    for idx, row in enumerate(state.row_hint):
+        row_positions = get_row_positions(row, state.n)
+        if row_positions is not None:
+            dfs_route.append((len(row_positions), idx, row_positions))
+        else:
+            solution = None
+            return solution
+    dfs_route = sorted(dfs_route)
 
-    ret = bfs_search(state)
+    ret = bfs_search(state, dfs_route)
     if ret != None:
-        # ret.sol_matrix = np.where(ret.sol_matrix > 0, True, False)
-        # if not checkSolution(ret):
-        #     print ret.sol_matrix
-        #     print "BUG!!"
-        #     raise()
         print ret.sol_matrix
     print "\n"
 
@@ -168,7 +174,7 @@ if __name__ == "__main__":
     time_used = []
     p_list = readQuestionFile('./tcga2016-question.txt')
 
-    # dfs_RL(p_list[92])
+    # dfs_RL(p_list[2])
 
     for i in xrange(0, len(p_list)):
         cur = datetime.datetime.utcnow()
