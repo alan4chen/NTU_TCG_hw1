@@ -131,7 +131,7 @@ if __name__ == "__main__":
         else:
             flag = False
 
-        time_used.append((datetime.datetime.utcnow() - cur, flag))
+        time_used.append(str(datetime.datetime.utcnow() - cur) + "  " + str(flag))
         for i, t in enumerate(time_used):
             print i, t
         print "--\n\n"

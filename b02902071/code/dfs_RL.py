@@ -6,6 +6,7 @@ from tools.structure import *
 from tools.RL import *
 from tools.checker import checkSolution
 import datetime
+from bfs_heuristic_RL import get_row_positions
 from time import sleep
 
 def run_regular(state):
@@ -57,7 +58,7 @@ def regular(state):
 
     return (True, "")
 
-def dfs_search(state, d):
+def dfs_search(state, d, dfs_route):
 
     while True:
         old_sol_matrix = copy.deepcopy(state.sol_matrix)
@@ -81,24 +82,21 @@ def dfs_search(state, d):
         else:
             return None
     else:
-        unknown_cells = np.where(state.sol_matrix == 0)
-        if d == 0:
-            print state.sol_matrix
+        row_branch = None
+        for row_positons in dfs_route:
+            if False in state.isfilled_matrix[row_positons[1]]:
+                state.isfilled_matrix[row_positons[1]] = True
+                row_branch = row_positons
+                break
 
-        for cell in zip(unknown_cells[0], unknown_cells[1]):
-            next_state = copy.deepcopy(state)
-            next_state.sol_matrix[cell[0]][cell[1]] = 1
-            # next_state.sol_matrix[cell[0]][1] = -1
-            # next_state.sol_matrix[cell[0]][2] = -1
-            # print "d:", d
-            # print next_state.sol_matrix
-            ret_state = dfs_search(next_state, d+1)
-            if ret_state != None:
-                return ret_state
+        if row_branch == None:
+            return None
 
+        for row in row_branch[2]:
             next_state = copy.deepcopy(state)
-            next_state.sol_matrix[cell[0]][cell[1]] = -1
-            ret_state = dfs_search(next_state, d + 1)
+            next_state.sol_matrix[row_branch[1]] = row
+
+            ret_state = dfs_search(next_state, d+1, dfs_route)
             if ret_state != None:
                 return ret_state
 
@@ -112,46 +110,19 @@ def dfs_RL(problem):
     '''
 
     state = initializeSolutionState(problem)
-    # print state.row_run
 
-    # for i in range(0, 50):
-    #     # print "--"
-    #     assert rule_1_1(state)
-    #     assert rule_1_2(state)
-    #     assert rule_1_3(state)
-    #     assert rule_1_4(state)
-    #     assert rule_1_5(state)
-    #     assert rule_2_1(state)
-    #     assert rule_2_2(state)
-    #     assert rule_2_3(state)
-    #     assert rule_2_4(state)
-    #     assert rule_3_1(state)
-    #     assert rule_3_2(state)
-    #     # print state.row_run_matrix[7][7]
-    #     assert rule_3_3(state)
-    #     # print state.row_run_matrix[7][7]
-    #     tranposeSolutionState(state)
-    #     assert rule_1_1(state)
-    #     assert rule_1_2(state)
-    #     assert rule_1_3(state)
-    #     assert rule_1_4(state)
-    #     assert rule_1_5(state)
-    #     assert rule_2_1(state)
-    #     assert rule_2_2(state)
-    #     assert rule_2_3(state)
-    #     assert rule_2_4(state)
-    #     assert rule_3_1(state)
-    #     assert rule_3_2(state)
-    #     assert rule_3_3(state)
-    #     tranposeSolutionState(state)
+    dfs_route = []
+    for idx, row in enumerate(state.row_hint):
+        row_positions = get_row_positions(row, state.n)
+        if row_positions is not None:
+            dfs_route.append((len(row_positions), idx, row_positions))
+        else:
+            solution = None
+            return solution
+    dfs_route = sorted(dfs_route)
 
-    ret = dfs_search(state, 0)
+    ret = dfs_search(state, 0, dfs_route)
     if ret != None:
-        # ret.sol_matrix = np.where(ret.sol_matrix > 0, True, False)
-        # if not checkSolution(ret):
-        #     print ret.sol_matrix
-        #     print "BUG!!"
-        #     raise()
         print ret.sol_matrix
     print "\n"
 

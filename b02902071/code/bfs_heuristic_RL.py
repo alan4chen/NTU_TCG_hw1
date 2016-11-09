@@ -126,6 +126,9 @@ def bfs_search(state, dfs_route):
                 row_branch = row_positons
                 break
 
+        if row_branch == None:
+            continue
+
         for row in row_branch[2]:
             new_state = copy.deepcopy(state)
             new_state.sol_matrix[row_branch[1]] = row
