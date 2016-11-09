@@ -54,7 +54,7 @@ if __name__ == "__main__":
                 print "$" + str(idx + 1)
                 print "Error. No Solution.\n"
 
-    elif 1 <= problem_id < len(p_list):
+    elif 1 <= problem_id <= len(p_list):
         cur = datetime.datetime.utcnow()
         s = func(p_list[problem_id-1])
         if s is not None:
