@@ -70,5 +70,5 @@ if __name__ == "__main__":
 
     total_used_time = datetime.datetime.utcnow()-total_cur
     print "Total Used Time:\n", total_used_time
-    writeAnswerFile(answer_path, answers)
+    writeAnswerFile(answer_path, answers, total_used_time)
 
