@@ -31,7 +31,7 @@ if __name__ == "__main__":
         print "Method ERROR \n"
         exit(0)
 
-    p_list = readQuestionFile('./tcga2016-question.txt')
+    p_list = readQuestionFile(question_path)
 
     answers = []
 
