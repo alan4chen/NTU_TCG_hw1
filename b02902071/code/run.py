@@ -8,7 +8,7 @@ import numpy as np
 from brute_force import brute_force
 from dfs import dfs
 from dfs_rowbyrow import dfs_rowbyrow
-from dfs_RL import dfs_RL
+from dfs_RL2 import dfs_RL
 from bfs_heuristic_RL2 import bfs_RL
 
 if __name__ == "__main__":
