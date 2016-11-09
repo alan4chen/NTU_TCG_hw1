@@ -1,0 +1,2 @@
+DEBUGG = False
+PRINT_TIME = True

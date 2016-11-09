@@ -123,8 +123,9 @@ def dfs_RL(problem):
 
     ret = dfs_search(state, 0, dfs_route)
     if ret != None:
-        print ret.sol_matrix
-    print "\n"
+        return ret
+    return None
+
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ from tools.compositions import compositions
 from Queue import PriorityQueue
 from collections import Counter
 from time import sleep
+import settings
 from collections import defaultdict
 
 def get_row_positions(row_hint, n):
@@ -134,7 +135,8 @@ def bfs_search(state, dfs_route):
             new_state.sol_matrix[row_branch[1]] = row
             if fit_regular(new_state) == True:
                 notfilled_num = len((np.where(new_state.isfilled_matrix==False))[0])
-                print notfilled_num, " size: ", stateQueue.qsize()
+                if settings.DEBUGG:
+                    print notfilled_num, " size: ", stateQueue.qsize()
                 if notfilled_num == 0:
                     new_state.sol_matrix = np.where(new_state.sol_matrix > 0, True, False)
                     if checkSolution(new_state):
@@ -142,13 +144,14 @@ def bfs_search(state, dfs_route):
                         return new_state
                     else:
                         # print new_state.sol_matrix
-                        print "error"
+                        if settings.DEBUGG:
+                            print "error"
                         del new_state
                         continue
                 stateQueue.put((notfilled_num, new_state))
     return None
 
-def dfs_RL(problem):
+def bfs_RL(problem):
     '''
     :param problem:
     :return: solution
@@ -168,9 +171,7 @@ def dfs_RL(problem):
     dfs_route = sorted(dfs_route)
 
     ret = bfs_search(state, dfs_route)
-    if ret != None:
-        print ret.sol_matrix
-    print "\n"
+    return ret
 
 
 if __name__ == "__main__":
@@ -182,7 +183,7 @@ if __name__ == "__main__":
     for i in xrange(0, len(p_list)):
         cur = datetime.datetime.utcnow()
         print "#", i
-        dfs_RL(p_list[i])
+        bfs_RL(p_list[i])
         time_used.append(datetime.datetime.utcnow() - cur)
         for i, t in enumerate(time_used):
             print i, t
