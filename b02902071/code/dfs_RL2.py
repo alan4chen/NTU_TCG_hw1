@@ -75,6 +75,7 @@ def dfs_search(state, d, dfs_route):
         if (old_sol_matrix == state.sol_matrix).all() and (old_row_run_matrix == state.row_run_matrix).all() and \
                 (old_col_run_matrix == state.col_run_matrix).all():
             break
+
     if len(np.where(state.isfilled_matrix == False)[0]) == 0:
         state.sol_matrix = np.where(state.sol_matrix > 0, True, False)
         if checkSolution(state):
